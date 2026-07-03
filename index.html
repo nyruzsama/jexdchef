@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jex D Chef - 500 Signature Recipes</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;cursor:none}
+:root{--black:#0C0B0A;--cream:#F7F1E8;--gold:#D6A84A;--darkGold:#A8782A;--bronze:#B88C46;--white:#fff;--glass:rgba(12,11,10,0.6);--glassBorder:rgba(214,168,74,0.15);--shadow:0 8px 32px rgba(0,0,0,0.4)}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--black);color:var(--cream);overflow-x:hidden}
+
+/* LOADER */
+#loader{position:fixed;inset:0;z-index:10000;background:var(--black);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.8s ease,visibility 0.8s ease}
+#loader.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.loader-book{width:120px;height:160px;position:relative;perspective:800px;margin-bottom:40px}
+.loader-page{position:absolute;inset:0;background:linear-gradient(135deg,var(--gold),var(--darkGold),var(--bronze));border-radius:4px;transform-origin:left center;animation:bookOpen 2s ease-in-out infinite;box-shadow:0 0 60px rgba(214,168,74,0.3)}
+.loader-page:nth-child(2){animation-delay:0.15s;background:linear-gradient(135deg,var(--darkGold),var(--bronze),var(--gold))}
+.loader-page:nth-child(3){animation-delay:0.3s;background:linear-gradient(135deg,var(--bronze),var(--gold),var(--darkGold))}
+.loader-page:nth-child(4){animation-delay:0.45s;background:linear-gradient(135deg,var(--gold),var(--darkGold),var(--bronze))}
+.loader-page:nth-child(5){animation-delay:0.6s;background:linear-gradient(135deg,var(--darkGold),var(--bronze),var(--gold))}
+@keyframes bookOpen{0%{transform:rotateY(0deg) scaleX(1)}50%{transform:rotateY(-180deg) scaleX(0.8)}100%{transform:rotateY(-360deg) scaleX(1)}}
+.loader-text{font-size:14px;letter-spacing:6px;text-transform:uppercase;color:var(--gold);margin-bottom:20px;font-weight:300}
+.loader-bar{width:200px;height:2px;background:rgba(214,168,74,0.15);border-radius:2px;position:relative}
+.loader-progress{height:100%;background:linear-gradient(90deg,var(--gold),var(--darkGold));border-radius:2px;width:0%;transition:width 0.3s ease}
+.loader-percent{font-size:12px;color:var(--gold);margin-top:12px;letter-spacing:2px;font-weight:300}
+
+/* CUSTOM CURSOR */
+.cursor{position:fixed;pointer-events:none;z-index:99999;border-radius:50%;transition:transform 0.15s ease,opacity 0.3s ease}
+.cursor-dot{width:8px;height:8px;background:var(--gold);box-shadow:0 0 20px var(--gold),0 0 60px var(--gold);transform:translate(-50%,-50%)}
+.cursor-ring{width:40px;height:40px;border:1px solid rgba(214,168,74,0.4);transform:translate(-50%,-50%);transition:width 0.3s ease,height 0.3s ease,border-color 0.3s ease}
+.cursor-ring.hover{width:60px;height:60px;border-color:var(--gold);background:rgba(214,168,74,0.08)}
+
+/* SCROLL PROGRESS */
+#scrollProgress{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--darkGold));z-index:9998;width:0%;transition:width 0.1s linear}
+
+/* NOISE OVERLAY */
+#noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-repeat:repeat;background-size:256px}
+
+/* BG CANVAS */
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* NAVBAR */
+nav{position:fixed;top:0;left:0;right:0;z-index:9990;padding:20px 50px;display:flex;align-items:center;justify-content:space-between;transition:all 0.5s ease;background:transparent}
+nav.scrolled{background:rgba(12,11,10,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:12px 50px;box-shadow:0 4px 30px rgba(0,0,0,0.3);border-bottom:1px solid var(--glassBorder)}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:600;letter-spacing:-0.5px;color:var(--cream);text-decoration:none}
+.nav-logo span{color:var(--gold);font-weight:700}
+.nav-links{display:flex;gap:32px;list-style:none;margin:0;padding:0}
+.nav-links a{color:var(--cream);text-decoration:none;font-size:14px;font-weight:400;letter-spacing:0.5px;transition:color 0.3s ease;position:relative;padding:4px 0}
+.nav-links a::after{content:'';position:absolute;bottom:0;left:0;width:0;height:1px;background:var(--gold);transition:width 0.3s ease}
+.nav-links a:hover{color:var(--gold)}
+.nav-links a:hover::after{width:100%}
+.nav-cta{background:linear-gradient(135deg,var(--gold),var(--darkGold));color:var(--black);border:none;padding:12px 28px;border-radius:50px;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all 0.3s ease;text-decoration:none;position:relative;overflow:hidden}
+.nav-cta:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(214,168,74,0.3)}
+.nav-cta::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent,rgba(255,255,255,0.1),transparent);transform:rotate(45deg) translateX(-100%);transition:0.5s}
+.nav-cta:hover::after{transform:rotate(45deg) translateX(100%)}
+.menu-toggle{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:5px}
+.menu-toggle span{width:24px;height:1.5px;background:var(--cream);transition:all 0.3s ease;display:block}
+
+/* SECTIONS */
+section{position:relative;z-index:2}
+.container{max-width:1200px;margin:0 auto;padding:0 30px}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;align-items:center;padding:120px 50px 80px;position:relative;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;max-width:1200px;margin:0 auto;width:100%}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(214,168,74,0.1);border:1px solid rgba(214,168,74,0.2);padding:8px 18px;border-radius:50px;font-size:12px;letter-spacing:1px;color:var(--gold);margin-bottom:30px;text-transform:uppercase}
+.hero-badge .stars{color:var(--gold);letter-spacing:2px}
+.hero-title{font-size:clamp(42px,6vw,80px);font-weight:700;line-height:1.05;color:var(--cream);margin-bottom:20px;letter-spacing:-1.5px}
+.hero-title em{font-style:normal;background:linear-gradient(135deg,var(--gold),var(--darkGold),var(--bronze),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% auto;animation:gradientMove 4s ease infinite}
+@keyframes gradientMove{0%,100%{background-position:0% center}50%{background-position:100% center}}
+.hero-desc{font-size:18px;line-height:1.7;color:rgba(247,241,232,0.65);margin-bottom:35px;max-width:460px}
+.hero-buttons{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:40px}
+.btn{position:relative;display:inline-flex;align-items:center;gap:8px;padding:16px 36px;border-radius:50px;font-size:14px;font-weight:600;letter-spacing:0.5px;text-decoration:none;transition:all 0.4s ease;overflow:hidden;border:none;cursor:none}
+.btn-primary{background:linear-gradient(135deg,var(--gold),var(--darkGold));color:var(--black)}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 15px 45px rgba(214,168,74,0.25)}
+.btn-secondary{background:transparent;color:var(--cream);border:1px solid rgba(214,168,74,0.3)}
+.btn-secondary:hover{background:rgba(214,168,74,0.08);border-color:var(--gold);transform:translateY(-3px)}
+.btn .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.3);transform:scale(0);animation:rippleAnim 0.6s linear;pointer-events:none}
+@keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+.hero-features{display:flex;gap:24px;flex-wrap:wrap}
+.hero-features span{display:flex;align-items:center;gap:8px;font-size:14px;color:rgba(247,241,232,0.6)}
+.hero-features span svg{width:16px;height:16px;fill:none;stroke:var(--gold);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Hero Image */
+.hero-image-wrap{position:relative;display:flex;align-items:center;justify-content:center}
+.hero-image-inner{position:relative;width:100%;max-width:520px;transform-style:preserve-3d}
+.hero-image-inner img{width:100%;height:auto;border-radius:20px;position:relative;z-index:2;transition:transform 0.5s ease,box-shadow 0.5s ease;filter:drop-shadow(0 20px 60px rgba(0,0,0,0.5))}
+.hero-image-inner:hover img{transform:scale(1.02);box-shadow:0 30px 80px rgba(0,0,0,0.6)}
+.hero-glow{position:absolute;width:80%;height:80%;top:10%;left:10%;background:radial-gradient(ellipse,var(--gold),transparent 70%);opacity:0.3;filter:blur(60px);z-index:1;animation:glowPulse 4s ease-in-out infinite;pointer-events:none}
+.hero-blob{position:absolute;width:60%;height:60%;top:20%;left:20%;background:radial-gradient(ellipse,var(--darkGold),transparent 70%);opacity:0.15;filter:blur(80px);z-index:0;animation:blobMorph 8s ease-in-out infinite;pointer-events:none}
+@keyframes glowPulse{0%,100%{opacity:0.3;transform:scale(1)}50%{opacity:0.5;transform:scale(1.1)}}
+@keyframes blobMorph{0%,100%{border-radius:40% 60% 60% 40%/40% 50% 60% 50%;transform:rotate(0deg) scale(1)}33%{border-radius:60% 40% 50% 50%/50% 60% 40% 50%;transform:rotate(120deg) scale(1.15)}66%{border-radius:50% 50% 40% 60%/60% 40% 50% 50%;transform:rotate(240deg) scale(0.9)}}
+.hero-floating{animation:floatAnim 6s ease-in-out infinite}
+@keyframes floatAnim{0%,100%{transform:translateY(0px)}50%{transform:translateY(-15px)}}
+
+/* SECTION HEADS */
+.section-head{text-align:center;margin-bottom:70px}
+.section-head .tag{display:inline-block;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:15px;font-weight:400}
+.section-head h2{font-size:clamp(32px,5vw,56px);font-weight:700;line-height:1.1;color:var(--cream);letter-spacing:-1px}
+.section-head h2 em{font-style:normal;background:linear-gradient(135deg,var(--gold),var(--darkGold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.section-head p{font-size:17px;color:rgba(247,241,232,0.5);margin-top:16px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.6}
+
+/* RECIPES */
+#recipes{padding:120px 50px;position:relative}
+.recipes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:30px;max-width:1200px;margin:40px auto 0}
+.recipe-card{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glassBorder);border-radius:20px;overflow:hidden;transition:all 0.5s cubic-bezier(0.23,1,0.32,1);transform:translateY(0)}
+.recipe-card:hover{transform:translateY(-12px);box-shadow:0 25px 60px rgba(214,168,74,0.12),0 0 40px rgba(214,168,74,0.05);border-color:rgba(214,168,74,0.3)}
+.recipe-card-img{width:100%;height:220px;object-fit:cover;transition:transform 0.6s ease;display:block}
+.recipe-card:hover .recipe-card-img{transform:scale(1.08)}
+.recipe-card-body{padding:28px}
+.recipe-card-body h3{font-size:20px;color:var(--cream);margin-bottom:8px;font-weight:600}
+.recipe-card-body p{font-size:14px;color:rgba(247,241,232,0.55);line-height:1.5;margin-bottom:16px}
+.recipe-stars{color:var(--gold);letter-spacing:2px;font-size:13px;margin-bottom:14px}
+.recipe-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--gold);text-decoration:none;font-weight:500;transition:gap 0.3s ease}
+.recipe-btn:hover{gap:12px}
+
+/* EBOOK SECTION */
+#ebook{padding:120px 50px;position:relative}
+.ebook-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1200px;margin:0 auto}
+.ebook-image-wrap{position:relative;display:flex;justify-content:center;align-items:center;perspective:1000px}
+.ebook-image-inner{position:relative;width:100%;max-width:400px;transform-style:preserve-3d;transition:transform 0.1s ease}
+.ebook-image-inner img{width:100%;height:auto;border-radius:12px;position:relative;z-index:2;filter:drop-shadow(0 30px 80px rgba(0,0,0,0.6));box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+.ebook-shadow{position:absolute;bottom:-40px;left:10%;width:80%;height:30px;background:radial-gradient(ellipse,rgba(214,168,74,0.2),transparent 70%);filter:blur(20px);z-index:1;pointer-events:none}
+.ebook-glow{position:absolute;width:70%;height:70%;top:15%;left:15%;background:radial-gradient(ellipse,var(--gold),transparent 70%);opacity:0.2;filter:blur(60px);z-index:0;pointer-events:none;animation:glowPulse 5s ease-in-out infinite}
+.ebook-content .headline{font-size:clamp(32px,4vw,48px);font-weight:700;line-height:1.1;color:var(--cream);margin-bottom:20px}
+.ebook-content .headline span{background:linear-gradient(135deg,var(--gold),var(--darkGold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.ebook-content p{font-size:16px;line-height:1.7;color:rgba(247,241,232,0.55);margin-bottom:30px}
+.ebook-checklist{list-style:none;padding:0;margin-bottom:35px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ebook-checklist li{display:flex;align-items:center;gap:10px;font-size:15px;color:rgba(247,241,232,0.7)}
+.ebook-checklist li svg{width:18px;height:18px;fill:none;stroke:var(--gold);stroke-width:2.5;flex-shrink:0}
+.ebook-buttons{display:flex;gap:16px;flex-wrap:wrap}
+
+/* FEATURES */
+#features{padding:120px 50px;position:relative}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;max-width:1200px;margin:0 auto}
+.feature-card{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--glassBorder);border-radius:20px;padding:40px 32px;transition:all 0.5s cubic-bezier(0.23,1,0.32,1);text-align:center;position:relative;overflow:hidden}
+.feature-card::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(214,168,74,0.03),transparent);transition:left 0.8s ease}
+.feature-card:hover::before{left:100%}
+.feature-card:hover{transform:translateY(-8px);border-color:rgba(214,168,74,0.2);box-shadow:0 20px 50px rgba(214,168,74,0.08)}
+.feature-icon{width:64px;height:64px;margin:0 auto 24px;background:linear-gradient(135deg,rgba(214,168,74,0.12),rgba(168,120,42,0.08));border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;transition:transform 0.4s ease,box-shadow 0.4s ease}
+.feature-card:hover .feature-icon{transform:scale(1.1) translateY(-3px);box-shadow:0 10px 30px rgba(214,168,74,0.15)}
+.feature-card h3{font-size:19px;color:var(--cream);margin-bottom:10px;font-weight:600}
+.feature-card p{font-size:14px;color:rgba(247,241,232,0.5);line-height:1.6}
+
+/* STATISTICS */
+#stats{padding:100px 50px;position:relative;background:linear-gradient(180deg,transparent,rgba(214,168,74,0.03),transparent)}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:30px;max-width:1000px;margin:0 auto}
+.stat-item{text-align:center;padding:40px 20px;border-radius:16px;transition:all 0.4s ease}
+.stat-item:hover{background:rgba(214,168,74,0.04)}
+.stat-number{font-size:clamp(36px,4vw,56px);font-weight:700;background:linear-gradient(135deg,var(--gold),var(--darkGold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:8px}
+.stat-label{font-size:14px;color:rgba(247,241,232,0.5);text-transform:uppercase;letter-spacing:2px;font-weight:400}
+
+/* WHY EBOOK */
+#why{padding:120px 50px;position:relative}
+.why-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;max-width:1200px;margin:0 auto;align-items:center}
+.why-content .headline{font-size:clamp(30px,4vw,44px);font-weight:700;line-height:1.1;color:var(--cream);margin-bottom:20px}
+.why-content .headline span{background:linear-gradient(135deg,var(--gold),var(--darkGold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.why-content>p{font-size:16px;line-height:1.7;color:rgba(247,241,232,0.5);margin-bottom:40px}
+.why-timeline{display:flex;flex-direction:column;gap:20px}
+.why-card{display:flex;gap:18px;padding:24px;background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--glassBorder);border-radius:16px;transition:all 0.4s ease}
+.why-card:hover{transform:translateX(8px);border-color:rgba(214,168,74,0.2);box-shadow:0 10px 30px rgba(214,168,74,0.06)}
+.why-card-num{font-size:32px;font-weight:700;color:var(--gold);opacity:0.4;line-height:1;min-width:40px}
+.why-card h4{font-size:17px;color:var(--cream);margin-bottom:6px;font-weight:600}
+.why-card p{font-size:14px;color:rgba(247,241,232,0.5);line-height:1.5}
+.why-visual{position:relative;display:flex;align-items:center;justify-content:center}
+.why-visual-inner{width:100%;max-width:440px;aspect-ratio:3/4;background:linear-gradient(135deg,rgba(214,168,74,0.06),rgba(168,120,42,0.03));border-radius:24px;border:1px solid var(--glassBorder);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:40px}
+.why-visual-inner .why-phrase{font-size:clamp(24px,3vw,36px);font-weight:700;color:var(--cream);text-align:center;line-height:1.3}
+.why-visual-inner .why-phrase span{color:var(--gold)}
+.why-visual-glow{position:absolute;width:60%;height:60%;background:radial-gradient(ellipse,var(--gold),transparent 70%);opacity:0.15;filter:blur(70px);pointer-events:none;animation:glowPulse 5s ease-in-out infinite}
+
+/* TESTIMONIALS */
+#testimonials{padding:120px 50px;position:relative}
+.testimonials-carousel{max-width:800px;margin:0 auto;overflow:hidden;position:relative}
+.testimonials-track{display:flex;transition:transform 0.6s cubic-bezier(0.23,1,0.32,1)}
+.testimonial-card{min-width:100%;padding:0 10px}
+.testimonial-inner{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glassBorder);border-radius:24px;padding:50px 45px;text-align:center}
+.testimonial-stars{color:var(--gold);font-size:16px;letter-spacing:3px;margin-bottom:20px}
+.testimonial-text{font-size:clamp(18px,2vw,22px);color:var(--cream);line-height:1.6;margin-bottom:30px;font-weight:300;font-style:italic}
+.testimonial-author{display:flex;align-items:center;justify-content:center;gap:14px}
+.testimonial-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--darkGold));display:flex;align-items:center;justify-content:center;color:var(--black);font-weight:700;font-size:18px}
+.testimonial-info{text-align:left}
+.testimonial-info h4{font-size:15px;color:var(--cream);font-weight:600}
+.testimonial-info p{font-size:12px;color:rgba(247,241,232,0.4);letter-spacing:0.5px}
+.carousel-dots{display:flex;justify-content:center;gap:10px;margin-top:30px}
+.carousel-dot{width:8px;height:8px;border-radius:50%;background:rgba(214,168,74,0.2);border:none;cursor:none;transition:all 0.4s ease}
+.carousel-dot.active{background:var(--gold);width:28px;border-radius:4px;box-shadow:0 0 20px rgba(214,168,74,0.3)}
+
+/* FAQ */
+#faq{padding:120px 50px;position:relative}
+.faq-list{max-width:720px;margin:0 auto}
+.faq-item{border-bottom:1px solid rgba(214,168,74,0.1);padding:8px 0}
+.faq-question{width:100%;background:none;border:none;padding:20px 0;display:flex;justify-content:space-between;align-items:center;color:var(--cream);font-size:17px;font-weight:500;text-align:left;cursor:none;transition:color 0.3s ease}
+.faq-question:hover{color:var(--gold)}
+.faq-icon{width:20px;height:20px;position:relative;transition:transform 0.4s ease;flex-shrink:0}
+.faq-icon::before,.faq-icon::after{content:'';position:absolute;background:var(--gold);border-radius:1px;transition:all 0.4s ease}
+.faq-icon::before{width:100%;height:2px;top:50%;transform:translateY(-50%)}
+.faq-icon::after{width:2px;height:100%;left:50%;transform:translateX(-50%)}
+.faq-item.active .faq-icon{transform:rotate(45deg)}
+.faq-item.active .faq-icon::before,.faq-item.active .faq-icon::after{background:var(--cream)}
+.faq-answer{max-height:0;overflow:hidden;transition:max-height 0.5s ease,padding 0.5s ease;padding:0 20px 0 0}
+.faq-answer p{padding-bottom:20px;font-size:15px;line-height:1.7;color:rgba(247,241,232,0.5)}
+
+/* FINAL CTA */
+#cta{padding:140px 50px;position:relative;overflow:hidden}
+.cta-inner{max-width:1100px;margin:0 auto;text-align:center;position:relative;z-index:2}
+.cta-image{max-width:260px;margin:0 auto 40px;position:relative}
+.cta-image img{width:100%;height:auto;border-radius:12px;filter:drop-shadow(0 30px 80px rgba(0,0,0,0.5));animation:floatAnim 6s ease-in-out infinite}
+.cta-image-glow{position:absolute;width:80%;height:80%;top:10%;left:10%;background:radial-gradient(ellipse,var(--gold),transparent 70%);opacity:0.3;filter:blur(60px);pointer-events:none;animation:glowPulse 4s ease-in-out infinite}
+.cta-title{font-size:clamp(36px,5vw,68px);font-weight:700;line-height:1.05;color:var(--cream);margin-bottom:20px;letter-spacing:-1px}
+.cta-title em{font-style:normal;background:linear-gradient(135deg,var(--gold),var(--bronze),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% auto;animation:gradientMove 4s ease infinite}
+.cta-desc{font-size:18px;color:rgba(247,241,232,0.5);margin-bottom:40px;max-width:500px;margin-left:auto;margin-right:auto}
+.cta-buttons{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.cta-bg-glow{position:absolute;top:50%;left:50%;width:80%;height:80%;transform:translate(-50%,-50%);background:radial-gradient(ellipse,var(--gold),var(--darkGold),transparent 70%);opacity:0.06;filter:blur(100px);pointer-events:none;z-index:0}
+
+/* FOOTER */
+footer{position:relative;z-index:2;padding:80px 50px 30px;border-top:1px solid var(--glassBorder)}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1.5fr;gap:50px;max-width:1200px;margin:0 auto 50px}
+.footer-brand .logo{font-size:22px;font-weight:700;color:var(--cream);margin-bottom:16px;display:block}
+.footer-brand .logo span{color:var(--gold)}
+.footer-brand p{font-size:14px;color:rgba(247,241,232,0.4);line-height:1.7;max-width:300px}
+.footer-col h4{font-size:14px;color:var(--cream);font-weight:600;margin-bottom:20px;text-transform:uppercase;letter-spacing:1px}
+.footer-col a{display:block;font-size:14px;color:rgba(247,241,232,0.45);text-decoration:none;margin-bottom:12px;transition:color 0.3s ease}
+.footer-col a:hover{color:var(--gold)}
+.footer-newsletter{display:flex;gap:8px;margin-top:16px}
+.footer-newsletter input{flex:1;padding:14px 18px;border-radius:50px;border:1px solid rgba(214,168,74,0.15);background:rgba(255,255,255,0.04);color:var(--cream);font-size:13px;outline:none;transition:border-color 0.3s ease}
+.footer-newsletter input::placeholder{color:rgba(247,241,232,0.3)}
+.footer-newsletter input:focus{border-color:var(--gold)}
+.footer-newsletter button{padding:14px 24px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--gold),var(--darkGold));color:var(--black);font-weight:600;font-size:13px;cursor:none;transition:all 0.3s ease;white-space:nowrap}
+.footer-newsletter button:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(214,168,74,0.2)}
+.footer-bottom{text-align:center;padding-top:30px;border-top:1px solid rgba(214,168,74,0.06);font-size:13px;color:rgba(247,241,232,0.3)}
+.footer-social{display:flex;gap:14px;margin-top:20px}
+.footer-social a{width:40px;height:40px;border-radius:50%;border:1px solid rgba(214,168,74,0.15);display:flex;align-items:center;justify-content:center;color:rgba(247,241,232,0.5);text-decoration:none;transition:all 0.3s ease;font-size:16px}
+.footer-social a:hover{background:var(--gold);color:var(--black);border-color:var(--gold);transform:translateY(-3px)}
+
+/* REVEAL ANIMATIONS */
+.reveal{opacity:0;transform:translateY(50px);transition:all 0.8s cubic-bezier(0.23,1,0.32,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-left{opacity:0;transform:translateX(-60px);transition:all 0.8s cubic-bezier(0.23,1,0.32,1)}
+.reveal-left.visible{opacity:1;transform:translateX(0)}
+.reveal-right{opacity:0;transform:translateX(60px);transition:all 0.8s cubic-bezier(0.23,1,0.32,1)}
+.reveal-right.visible{opacity:1;transform:translateX(0)}
+.reveal-scale{opacity:0;transform:scale(0.9);transition:all 0.8s cubic-bezier(0.23,1,0.32,1)}
+.reveal-scale.visible{opacity:1;transform:scale(1)}
+.reveal-delay-1{transition-delay:0.1s}
+.reveal-delay-2{transition-delay:0.2s}
+.reveal-delay-3{transition-delay:0.3s}
+.reveal-delay-4{transition-delay:0.4s}
+
+/* RESPONSIVE */
+@media(max-width:1024px){
+  nav{padding:20px 30px}
+  nav.scrolled{padding:12px 30px}
+  #hero{padding:100px 30px 60px}
+  .hero-grid{grid-template-columns:1fr}
+  .hero-image-wrap{grid-row:1}
+  .hero-image-inner{max-width:400px;margin:0 auto}
+  .ebook-grid{grid-template-columns:1fr;gap:50px}
+  .why-grid{grid-template-columns:1fr;gap:40px}
+  .why-visual{grid-row:1}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:30px}
+  .recipe-card{max-width:380px;margin:0 auto}
+  .recipes-grid{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+}
+@media(max-width:768px){
+  .nav-links{display:none;position:fixed;top:0;right:-100%;width:300px;height:100vh;background:rgba(12,11,10,0.98);backdrop-filter:blur(30px);flex-direction:column;padding:100px 40px 40px;gap:24px;transition:right 0.4s ease;z-index:9991;border-left:1px solid var(--glassBorder)}
+  .nav-links.open{right:0;display:flex}
+  .nav-links a{font-size:18px}
+  .menu-toggle{display:flex;z-index:9992}
+  .menu-toggle.open span:nth-child(1){transform:rotate(45deg) translate(4px,4px)}
+  .menu-toggle.open span:nth-child(2){opacity:0}
+  .menu-toggle.open span:nth-child(3){transform:rotate(-45deg) translate(4px,-4px)}
+  #hero,.section-head,.recipes-grid,.ebook-grid,.features-grid,.stats-grid,.why-grid,#features,#why,#testimonials,#faq,#cta,#recipes,#ebook,#stats,footer{padding-left:20px;padding-right:20px}
+  .hero-title{font-size:clamp(32px,10vw,48px)}
+  .section-head h2{font-size:clamp(28px,8vw,38px)}
+  .ebook-content .headline,.why-content .headline{font-size:clamp(26px,7vw,34px)}
+  .ebook-checklist{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:16px}
+  .footer-grid{grid-template-columns:1fr}
+  .footer-newsletter{flex-direction:column}
+  .nav-cta{display:none}
+  .cta-image{max-width:200px}
+  .testimonial-inner{padding:30px 20px}
+  .stat-number{font-size:clamp(28px,8vw,40px)}
+}
+@media(max-width:480px){
+  nav{padding:16px 16px}
+  nav.scrolled{padding:10px 16px}
+  .nav-logo{font-size:17px}
+  .hero-buttons,.ebook-buttons,.cta-buttons{flex-direction:column;align-items:stretch}
+  .btn{justify-content:center}
+  .hero-features{flex-direction:column;gap:12px}
+}
+
+/* EXTRA SMALL TWEAKS */
+#bgCanvas{will-change:transform}
+img{pointer-events:none;user-select:none;-webkit-user-drag:none}
+::selection{background:var(--gold);color:var(--black)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--black)}
+::-webkit-scrollbar-thumb{background:var(--darkGold);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold)}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-book">
+    <div class="loader-page"></div>
+    <div class="loader-page"></div>
+    <div class="loader-page"></div>
+    <div class="loader-page"></div>
+    <div class="loader-page"></div>
+  </div>
+  <div class="loader-text">Loading</div>
+  <div class="loader-bar"><div class="loader-progress" id="loaderProgress"></div></div>
+  <div class="loader-percent" id="loaderPercent">0%</div>
+</div>
+
+<!-- CUSTOM CURSOR -->
+<div class="cursor cursor-dot" id="cursorDot"></div>
+<div class="cursor cursor-ring" id="cursorRing"></div>
+
+<!-- SCROLL PROGRESS -->
+<div id="scrollProgress"></div>
+
+<!-- NOISE OVERLAY -->
+<div id="noise"></div>
+
+<!-- BG CANVAS -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <a href="https://jexterman8.gumroad.com/l/eqtju/" class="nav-logo"><span>✦</span> Jex D Chef</a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#hero" class="nav-link">Home</a></li>
+    <li><a href="#recipes" class="nav-link">Recipes</a></li>
+    <li><a href="#ebook" class="nav-link">Ebook</a></li>
+    <li><a href="#features" class="nav-link">Features</a></li>
+    <li><a href="#testimonials" class="nav-link">Testimonials</a></li>
+    <li><a href="#faq" class="nav-link">FAQ</a></li>
+    <li><a href="#cta" class="nav-link">Contact</a></li>
+  </ul>
+  <a href="https://jexterman8.gumroad.com/l/eqtju/" class="nav-cta">Get The Ebook</a>
+  <button class="menu-toggle" id="menuToggle" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid">
+    <div class="hero-content">
+      <div class="hero-badge reveal"><span class="stars">★★★★★</span> BEST SELLER</div>
+      <h1 class="hero-title reveal reveal-delay-1">Restaurant-Quality<br><em>Recipes at Home</em></h1>
+      <p class="hero-desc reveal reveal-delay-2">Unlock 500 professional chef recipes crafted by Jex D Chef. From Michelin-star techniques to everyday gourmet — transform your kitchen into a fine dining experience.</p>
+      <div class="hero-buttons reveal reveal-delay-3">
+        <a href="https://jexterman8.gumroad.com/l/eqtju/" class="btn btn-primary">Get The Ebook <span>→</span></a>
+        <a href="https://jexterman8.gumroad.com/l/eqtju/" class="btn btn-secondary">View Recipes</a>
+      </div>
+      <div class="hero-features reveal reveal-delay-4">
+        <span><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Easy to Follow</span>
+        <span><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Premium Ingredients</span>
+        <span><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Made with Love</span>
+      </div>
+    </div>
+    <div class="hero-image-wrap reveal reveal-delay-2">
+      <div class="hero-image-inner hero-floating" id="heroImageWrap">
+        <div class="hero-glow"></div>
+        <div class="hero-blob"></div>
+        <img src="b.png" alt="Jex D Chef" id="heroImg">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RECIPES -->
+<section id="recipes">
+  <div class="section-head reveal">
+    <div class="tag">Premium Selection</div>
+    <h2>Taste. <em>Love.</em> Repeat.</h2>
+    <p>Discover a curated collection of 500 signature recipes that bring restaurant-quality dining to your home kitchen.</p>
+  </div>
+  <div class="recipes-grid">
+    <div class="recipe-card reveal reveal-delay-1">
+      <img src="https://images.unsplash.com/photo-1476124369491-e7addf5db371?auto=format&fit=crop&w=800&q=80" alt="Truffle Risotto" class="recipe-card-img" loading="lazy">
+      <div class="recipe-card-body">
+        <div class="recipe-stars">★★★★★</div>
+        <h3>Truffle Risotto</h3>
+        <p>Creamy arborio rice with black truffle, parmesan, and a hint of white wine.</p>
+        <a href="https://jexterman8.gumroad.com/l/eqtju/" class="recipe-btn">View Recipe <span>→</span></a>
+      </div>
+    </div>
+    <div class="recipe-card reveal reveal-delay-2">
+      <img src="https://images.unsplash.com/photo-1761983723667-99c7fd98af53?auto=format&fit=crop&w=800&q=80" alt="Herb Crusted Lamb" class="recipe-card-img" loading="lazy">
+      <div class="recipe-card-body">
+        <div class="recipe-stars">★★★★★</div>
+        <h3>Herb Crusted Lamb</h3>
+        <p>Perfectly seared lamb rack with rosemary, thyme, and a Dijon honey glaze.</p>
+        <a href="https://jexterman8.gumroad.com/l/eqtju/" class="recipe-btn">View Recipe <span>→</span></a>
+      </div>
+    </div>
+    <div class="recipe-card reveal reveal-delay-3">
+      <img src="https://images.unsplash.com/photo-1779094543757-c16b48395fcf?auto=format&fit=crop&w=800&q=80" alt="Golden Crème Brûlée" class="recipe-card-img" loading="lazy">
+      <div class="recipe-card-body">
+        <div class="recipe-stars">★★★★★</div>
+        <h3>Golden Crème Brûlée</h3>
+        <p>Silky vanilla custard with a caramelized sugar crust, torched to perfection.</p>
+        <a href="https://jexterman8.gumroad.com/l/eqtju/" class="recipe-btn">View Recipe <span>→</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EBOOK -->
+<section id="ebook">
+  <div class="ebook-grid">
+    <div class="ebook-image-wrap reveal-left">
+      <div class="ebook-image-inner" id="ebookTilt">
+        <div class="ebook-glow"></div>
+        <img src="b.png" alt="500 Signature Recipes">
+        <div class="ebook-shadow"></div>
+      </div>
+    </div>
+    <div class="ebook-content reveal-right">
+      <div class="tag" style="font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:15px">Digital Cookbook</div>
+      <h2 class="headline"><span>500</span> Signature Recipes</h2>
+      <p>The ultimate collection of professional recipes crafted by Jex D Chef. Every dish has been perfected through years of culinary mastery.</p>
+      <ul class="ebook-checklist">
+        <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Step-by-step recipes</li>
+        <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Restaurant secrets</li>
+        <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Full-color photos</li>
+        <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Premium cookbook</li>
+      </ul>
+      <div class="ebook-buttons">
+        <a href="https://jexterman8.gumroad.com/l/eqtju/" class="btn btn-primary">Get Ebook <span>→</span></a>
+        <a href="https://jexterman8.gumroad.com/l/eqtju/" class="btn btn-secondary">Read Sample</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-head reveal">
+    <div class="tag">Why Choose This</div>
+    <h2>Everything You <em>Need</em></h2>
+    <p>Every feature designed to make your cooking journey extraordinary.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card reveal reveal-delay-1">
+      <div class="feature-icon">🍽</div>
+      <h3>500 Recipes</h3>
+      <p>An extensive collection covering appetizers to desserts, from every cuisine around the world.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-2">
+      <div class="feature-icon">👨‍🍳</div>
+      <h3>Professional Cooking</h3>
+      <p>Techniques used by top chefs, explained simply for home cooks of all skill levels.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-3">
+      <div class="feature-icon">🔑</div>
+      <h3>Restaurant Secrets</h3>
+      <p>Behind-the-scenes tips that elevate your dishes from good to unforgettable.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-1">
+      <div class="feature-icon">📝</div>
+      <h3>Easy Instructions</h3>
+      <p>Clear, concise steps with timing guides so every dish comes out perfect.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-2">
+      <div class="feature-icon">📸</div>
+      <h3>Beautiful Food Photography</h3>
+      <p>Stunning full-color images inspire and guide you through every recipe.</p>
+    </div>
+    <div class="feature-card reveal reveal-delay-3">
+      <div class="feature-icon">⚡</div>
+      <h3>Instant Digital Download</h3>
+      <p>Get instant access across all your devices — cook anywhere, anytime.</p>
+    </div>
+  </div>
+</section>
+
+<!-- STATISTICS -->
+<section id="stats">
+  <div class="stats-grid">
+    <div class="stat-item reveal">
+      <div class="stat-number" data-count="500">0+</div>
+      <div class="stat-label">Recipes</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-1">
+      <div class="stat-number" data-count="20">0+</div>
+      <div class="stat-label">Categories</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-2">
+      <div class="stat-number" data-count="100">0%</div>
+      <div class="stat-label">Digital</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-3">
+      <div class="stat-number" data-count="49">4.9★</div>
+      <div class="stat-label">Rating</div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY EBOOK -->
+<section id="why">
+  <div class="why-grid">
+    <div class="why-content reveal-left">
+      <div class="tag" style="font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);margin-bottom:15px">Why This Ebook</div>
+      <h2 class="headline">Cooking <span>Redefined</span></h2>
+      <p>This isn't just a cookbook — it's your personal culinary school. Every page brings you closer to mastery.</p>
+      <div class="why-timeline">
+        <div class="why-card">
+          <div class="why-card-num">01</div>
+          <div><h4>Curated by a Master Chef</h4><p>Jex D Chef has spent over a decade perfecting these 500 signature recipes.</p></div>
+        </div>
+        <div class="why-card">
+          <div class="why-card-num">02</div>
+          <div><h4>From Basics to Brilliance</h4><p>Whether you're a beginner or a seasoned cook, there's always something new to learn.</p></div>
+        </div>
+        <div class="why-card">
+          <div class="why-card-num">03</div>
+          <div><h4>Global Flavors, One Collection</h4><p>Explore cuisines from Italian to Thai, French to Japanese — all in one place.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="why-visual reveal-right">
+      <div class="why-visual-glow"></div>
+      <div class="why-visual-inner">
+        <div class="why-phrase">Cook Like a <span>Chef</span><br>Eat Like a <span>King</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="section-head reveal">
+    <div class="tag">What Readers Say</div>
+    <h2>Trusted by <em>Thousands</em></h2>
+    <p>Hear from home cooks who transformed their kitchens with 500 Signature Recipes.</p>
+  </div>
+  <div class="testimonials-carousel reveal">
+    <div class="testimonials-track" id="testimonialTrack">
+      <div class="testimonial-card">
+        <div class="testimonial-inner">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"This ebook completely changed how I cook. The recipes are easy to follow and the results are restaurant-quality every single time."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">SM</div>
+            <div class="testimonial-info">
+              <h4>Sarah Mitchell</h4>
+              <p>Home Chef, New York</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-inner">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"I've bought dozens of cookbooks but this one stands out. The professional tips and techniques are worth ten times the price."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">MJ</div>
+            <div class="testimonial-info">
+              <h4>Marcus Johnson</h4>
+              <p>Food Enthusiast, London</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-inner">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"The photography alone is stunning. Every recipe I've tried has been a hit with my family. Highly recommend to anyone who loves cooking."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">EL</div>
+            <div class="testimonial-info">
+              <h4>Emily Liu</h4>
+              <p>Food Blogger, San Francisco</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="carousel-dots" id="carouselDots">
+      <button class="carousel-dot active" data-index="0" aria-label="Testimonial 1"></button>
+      <button class="carousel-dot" data-index="1" aria-label="Testimonial 2"></button>
+      <button class="carousel-dot" data-index="2" aria-label="Testimonial 3"></button>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="section-head reveal">
+    <div class="tag">FAQ</div>
+    <h2>Got <em>Questions?</em></h2>
+    <p>Everything you need to know before you grab your copy.</p>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item reveal">
+      <button class="faq-question">How do I download the ebook?<span class="faq-icon"></span></button>
+      <div class="faq-answer"><p>After purchase, you'll receive an instant download link via email. You can also access it anytime from your account dashboard. The ebook is available in PDF format compatible with all devices.</p></div>
+    </div>
+    <div class="faq-item reveal reveal-delay-1">
+      <button class="faq-question">Is this beginner friendly?<span class="faq-icon"></span></button>
+      <div class="faq-answer"><p>Absolutely! The recipes range from simple 15-minute meals to advanced chef-level dishes. Each recipe includes clear instructions, prep times, and skill level indicators so you know exactly what to expect.</p></div>
+    </div>
+    <div class="faq-item reveal reveal-delay-2">
+      <button class="faq-question">Can I print the recipes?<span class="faq-icon"></span></button>
+      <div class="faq-answer"><p>Yes! The ebook is formatted for easy printing. You can print individual recipes or entire sections. Each recipe is designed to fit neatly on a single page or two for convenience.</p></div>
+    </div>
+    <div class="faq-item reveal reveal-delay-3">
+      <button class="faq-question">Will I get updates?<span class="faq-icon"></span></button>
+      <div class="faq-answer"><p>Yes, all purchases include free lifetime updates. As Jex D Chef creates new recipes and refines existing ones, you'll receive updated versions at no additional cost.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section id="cta">
+  <div class="cta-bg-glow"></div>
+  <div class="cta-inner">
+    <div class="cta-image reveal">
+      <div class="cta-image-glow"></div>
+      <img src="b.png" alt="500 Signature Recipes">
+    </div>
+    <h2 class="cta-title reveal reveal-delay-1">Start Cooking<br><em>Like a Professional Chef</em></h2>
+    <p class="cta-desc reveal reveal-delay-2">Join thousands of home cooks who've transformed their kitchens with 500 signature recipes at their fingertips.</p>
+    <div class="cta-buttons reveal reveal-delay-3">
+      <a href="https://jexterman8.gumroad.com/l/eqtju/" class="btn btn-primary">Buy Now <span>→</span></a>
+      <a href="https://jexterman8.gumroad.com/l/eqtju/" class="btn btn-secondary">Learn More</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="https://jexterman8.gumroad.com/l/eqtju/" class="logo"><span>✦</span> Jex D Chef</a>
+      <p>500 Signature Recipes — The Ultimate Collection. Transform your kitchen into a world-class restaurant.</p>
+      <div class="footer-social">
+        <a href="https://jexterman8.gumroad.com/l/eqtju/" aria-label="Instagram">✧</a>
+        <a href="https://jexterman8.gumroad.com/l/eqtju/" aria-label="Facebook">◆</a>
+        <a href="https://jexterman8.gumroad.com/l/eqtju/" aria-label="Twitter">◈</a>
+        <a href="https://jexterman8.gumroad.com/l/eqtju/" aria-label="YouTube">▶</a>
+        <a href="https://jexterman8.gumroad.com/l/eqtju/" aria-label="Pinterest">◉</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <a href="#hero">Home</a>
+      <a href="#recipes">Recipes</a>
+      <a href="#ebook">Ebook</a>
+      <a href="#features">Features</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="footer-col">
+      <h4>Support</h4>
+      <a href="https://jexterman8.gumroad.com/l/eqtju/">Contact Us</a>
+      <a href="https://jexterman8.gumroad.com/l/eqtju/">Privacy Policy</a>
+      <a href="https://jexterman8.gumroad.com/l/eqtju/">Terms of Service</a>
+      <a href="https://jexterman8.gumroad.com/l/eqtju/">Refund Policy</a>
+    </div>
+    <div class="footer-col">
+      <h4>Newsletter</h4>
+      <p style="font-size:14px;color:rgba(247,241,232,0.4);line-height:1.6;margin-bottom:8px">Get exclusive recipes and cooking tips.</p>
+      <div class="footer-newsletter">
+        <input type="email" placeholder="Your email address">
+        <a href="https://jexterman8.gumroad.com/l/eqtju/" class="btn" style="padding:14px 24px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--gold),var(--darkGold));color:var(--black);font-weight:600;font-size:13px;text-decoration:none;transition:all 0.3s ease;white-space:nowrap;display:inline-block">Subscribe</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2026 Jex D Chef. All rights reserved. Made with passion.</div>
+</footer>
+
+<script>
+// ============== LOADER ==============
+(function(){
+  const loader = document.getElementById('loader');
+  const progress = document.getElementById('loaderProgress');
+  const percent = document.getElementById('loaderPercent');
+  let p = 0;
+  const interval = setInterval(function(){
+    p += Math.random() * 12 + 3;
+    if(p > 100) p = 100;
+    progress.style.width = p + '%';
+    percent.textContent = Math.round(p) + '%';
+    if(p >= 100){
+      clearInterval(interval);
+      setTimeout(function(){
+        loader.classList.add('hidden');
+        document.body.style.overflow = '';
+      }, 600);
+    }
+  }, 180);
+  document.body.style.overflow = 'hidden';
+})();
+
+// ============== CURSOR ==============
+const dot = document.getElementById('cursorDot');
+const ring = document.getElementById('cursorRing');
+let mx = -100, my = -100;
+let ringX = -100, ringY = -100;
+
+document.addEventListener('mousemove', function(e){
+  mx = e.clientX;
+  my = e.clientY;
+  dot.style.left = mx + 'px';
+  dot.style.top = my + 'px';
+});
+
+function smoothRing(){
+  ringX += (mx - ringX) * 0.2;
+  ringY += (my - ringY) * 0.2;
+  ring.style.left = ringX + 'px';
+  ring.style.top = ringY + 'px';
+  requestAnimationFrame(smoothRing);
+}
+smoothRing();
+
+document.querySelectorAll('a, button, .btn, .recipe-card, .feature-card, .faq-question, .carousel-dot, .stat-item').forEach(function(el){
+  el.addEventListener('mouseenter', function(){ ring.classList.add('hover'); });
+  el.addEventListener('mouseleave', function(){ ring.classList.remove('hover'); });
+});
+
+document.addEventListener('mouseleave', function(){
+  dot.style.opacity = '0';
+  ring.style.opacity = '0';
+});
+document.addEventListener('mouseenter', function(){
+  dot.style.opacity = '1';
+  ring.style.opacity = '1';
+});
+
+// ============== SCROLL PROGRESS ==============
+const scrollBar = document.getElementById('scrollProgress');
+window.addEventListener('scroll', function(){
+  const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+  const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  const pct = (scrollTop / scrollHeight) * 100;
+  scrollBar.style.width = pct + '%';
+});
+
+// ============== NAVBAR SCROLL ==============
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', function(){
+  if(window.scrollY > 80){
+    navbar.classList.add('scrolled');
+  } else {
+    navbar.classList.remove('scrolled');
+  }
+});
+
+// ============== MOBILE MENU ==============
+const toggle = document.getElementById('menuToggle');
+const navLinks = document.getElementById('navLinks');
+toggle.addEventListener('click', function(){
+  toggle.classList.toggle('open');
+  navLinks.classList.toggle('open');
+});
+navLinks.querySelectorAll('a').forEach(function(link){
+  link.addEventListener('click', function(){
+    toggle.classList.remove('open');
+    navLinks.classList.remove('open');
+  });
+});
+
+// ============== HERO PARALLAX ==============
+const heroImg = document.getElementById('heroImg');
+const heroWrap = document.getElementById('heroImageWrap');
+document.getElementById('hero').addEventListener('mousemove', function(e){
+  const rect = this.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / rect.width - 0.5;
+  const y = (e.clientY - rect.top) / rect.height - 0.5;
+  heroImg.style.transform = 'translate(' + (x * 20) + 'px, ' + (y * 20) + 'px) scale(1.02)';
+});
+document.getElementById('hero').addEventListener('mouseleave', function(){
+  heroImg.style.transform = 'translate(0, 0) scale(1)';
+});
+
+// ============== EBOOK 3D TILT ==============
+const ebookImg = document.getElementById('ebookTilt');
+if(ebookImg){
+  document.querySelector('.ebook-image-wrap').addEventListener('mousemove', function(e){
+    const rect = this.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    ebookImg.style.transform = 'rotateY(' + (x * 20) + 'deg) rotateX(' + (-y * 15) + 'deg) scale3d(1.02,1.02,1.02)';
+  });
+  document.querySelector('.ebook-image-wrap').addEventListener('mouseleave', function(){
+    ebookImg.style.transform = 'rotateY(0deg) rotateX(0deg) scale3d(1,1,1)';
+  });
+}
+
+// ============== SCROLL REVEAL ==============
+const revealElements = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale');
+const observer = new IntersectionObserver(function(entries){
+  entries.forEach(function(entry){
+    if(entry.isIntersecting){
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+revealElements.forEach(function(el){ observer.observe(el); });
+
+// ============== COUNTER ANIMATION ==============
+const statNumbers = document.querySelectorAll('.stat-number');
+const counterObserver = new IntersectionObserver(function(entries){
+  entries.forEach(function(entry){
+    if(entry.isIntersecting){
+      const el = entry.target;
+      const target = parseInt(el.getAttribute('data-count'));
+      if(isNaN(target)) return;
+      let current = 0;
+      const step = Math.ceil(target / 60);
+      const interval = setInterval(function(){
+        current += step;
+        if(current >= target){
+          current = target;
+          clearInterval(interval);
+        }
+        el.textContent = current + '+';
+      }, 25);
+      counterObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+statNumbers.forEach(function(el){ counterObserver.observe(el); });
+
+// ============== TESTIMONIALS CAROUSEL ==============
+const track = document.getElementById('testimonialTrack');
+const dots = document.querySelectorAll('.carousel-dot');
+let currentSlide = 0;
+let autoSlide;
+
+function goToSlide(index){
+  currentSlide = index;
+  track.style.transform = 'translateX(-' + (index * 100) + '%)';
+  dots.forEach(function(d, i){
+    d.classList.toggle('active', i === index);
+  });
+}
+
+dots.forEach(function(dot){
+  dot.addEventListener('click', function(){
+    goToSlide(parseInt(this.getAttribute('data-index')));
+    clearInterval(autoSlide);
+    autoSlide = setInterval(nextSlide, 5000);
+  });
+});
+
+function nextSlide(){
+  goToSlide((currentSlide + 1) % dots.length);
+}
+
+autoSlide = setInterval(nextSlide, 5000);
+
+// ============== FAQ ACCORDION ==============
+document.querySelectorAll('.faq-question').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    const item = this.closest('.faq-item');
+    const answer = item.querySelector('.faq-answer');
+    const isOpen = item.classList.contains('active');
+    document.querySelectorAll('.faq-item.active').forEach(function(el){
+      if(el !== item){
+        el.classList.remove('active');
+        el.querySelector('.faq-answer').style.maxHeight = '0';
+      }
+    });
+    if(isOpen){
+      item.classList.remove('active');
+      answer.style.maxHeight = '0';
+    } else {
+      item.classList.add('active');
+      answer.style.maxHeight = answer.scrollHeight + 'px';
+    }
+  });
+});
+
+// ============== BUTTON RIPPLE ==============
+document.querySelectorAll('.btn').forEach(function(btn){
+  btn.addEventListener('click', function(e){
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    const rect = this.getBoundingClientRect();
+    ripple.style.left = (e.clientX - rect.left) + 'px';
+    ripple.style.top = (e.clientY - rect.top) + 'px';
+    ripple.style.width = ripple.style.height = '20px';
+    this.appendChild(ripple);
+    setTimeout(function(){ ripple.remove(); }, 600);
+  });
+});
+
+// ============== BG PARTICLES CANVAS ==============
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const particles = [];
+const PARTICLE_COUNT = 80;
+
+for(let i = 0; i < PARTICLE_COUNT; i++){
+  particles.push({
+    x: Math.random() * W,
+    y: Math.random() * H,
+    r: Math.random() * 3 + 1,
+    dx: (Math.random() - 0.5) * 0.4,
+    dy: (Math.random() - 0.5) * 0.4,
+    opacity: Math.random() * 0.4 + 0.1,
+    hue: Math.random() > 0.5 ? 42 : 38 // golden hues
+  });
+}
+
+const orbs = [];
+const ORB_COUNT = 4;
+for(let i = 0; i < ORB_COUNT; i++){
+  orbs.push({
+    x: Math.random() * W,
+    y: Math.random() * H,
+    r: Math.random() * 200 + 100,
+    dx: (Math.random() - 0.5) * 0.3,
+    dy: (Math.random() - 0.5) * 0.3,
+    opacity: Math.random() * 0.04 + 0.02
+  });
+}
+
+function drawParticles(){
+  ctx.clearRect(0, 0, W, H);
+
+  // Golden orbs
+  orbs.forEach(function(o){
+    o.x += o.dx;
+    o.y += o.dy;
+    if(o.x < -o.r) o.x = W + o.r;
+    if(o.x > W + o.r) o.x = -o.r;
+    if(o.y < -o.r) o.y = H + o.r;
+    if(o.y > H + o.r) o.y = -o.r;
+    const grad = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
+    grad.addColorStop(0, 'rgba(214,168,74,' + o.opacity + ')');
+    grad.addColorStop(0.5, 'rgba(168,120,42,' + (o.opacity * 0.5) + ')');
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.fillRect(o.x - o.r, o.y - o.r, o.r * 2, o.r * 2);
+  });
+
+  // Particles
+  particles.forEach(function(p){
+    p.x += p.dx;
+    p.y += p.dy;
+    if(p.x < 0) p.x = W;
+    if(p.x > W) p.x = 0;
+    if(p.y < 0) p.y = H;
+    if(p.y > H) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'hsla(' + p.hue + ', 60%, 60%, ' + p.opacity + ')';
+    ctx.fill();
+  });
+
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// ============== MOUSE REACTIVE GLOW ==============
+const glowOverlay = document.createElement('div');
+glowOverlay.style.cssText = 'position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.06;transition:opacity 0.3s';
+document.body.appendChild(glowOverlay);
+
+document.addEventListener('mousemove', function(e){
+  const x = e.clientX / window.innerWidth;
+  const y = e.clientY / window.innerHeight;
+  glowOverlay.style.background = 'radial-gradient(800px at ' + (x * 100) + '% ' + (y * 100) + '%, rgba(214,168,74,0.15), transparent 70%)';
+  glowOverlay.style.opacity = '0.06';
+});
+</script>
+</body>
+</html>
